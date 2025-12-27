@@ -13,6 +13,49 @@ DESIGNER_FILE = os.path.join(BASE_DIR, "email-designer.html")
 SMTP_FILE = os.path.join(BASE_DIR, "smtp.json")
 
 
+def is_safe_html_name(name):
+    # 很简单的文件名校验：只允许当前目录下的 .html 文件
+    if not name:
+        return False
+    if "/" in name or "\\" in name:
+        return False
+    if name.startswith("."):
+        return False
+    return name.lower().endswith(".html")
+
+
+def list_html_templates():
+    # 列出当前目录下的 html 文件（排除设计器本身）
+    items = []
+    for fn in os.listdir(BASE_DIR):
+        if not fn.lower().endswith(".html"):
+            continue
+        if fn.lower() in ["email-designer.html"]:
+            continue
+        items.append(fn)
+    items.sort()
+    return items
+
+
+def load_html_file(name):
+    if not is_safe_html_name(name):
+        return ""
+    path = os.path.join(BASE_DIR, name)
+    if not os.path.exists(path):
+        return ""
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def save_html_file(name, html):
+    if not is_safe_html_name(name):
+        return False
+    path = os.path.join(BASE_DIR, name)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
+    return True
+
+
 def load_smtp_config():
     # 环境变量优先；没有的话再读 smtp.json
     cfg = {
@@ -114,6 +157,31 @@ def email_template():
     html = data.get("html", "")
     save_email_html(html)
     return jsonify({"status": "saved"})
+
+
+@app.route("/api/templates", methods=["GET"])
+def templates_list():
+    return jsonify({"templates": list_html_templates()})
+
+
+@app.route("/api/template", methods=["GET", "POST"])
+def template_file():
+    # 用 name 指定要读/写哪个 html 文件
+    if request.method == "GET":
+        name = request.args.get("name") or EMAIL_FILE.split(os.sep)[-1]
+        if not is_safe_html_name(name):
+            return jsonify({"error": "Bad template name"}), 400
+        return jsonify({"name": name, "html": load_html_file(name)})
+
+    data = request.get_json(silent=True) or {}
+    name = data.get("name") or EMAIL_FILE.split(os.sep)[-1]
+    html = data.get("html", "")
+    if not is_safe_html_name(name):
+        return jsonify({"error": "Bad template name"}), 400
+    ok = save_html_file(name, html)
+    if not ok:
+        return jsonify({"error": "Save failed"}), 500
+    return jsonify({"status": "saved", "name": name})
 
 
 @app.route("/api/send", methods=["POST"])
