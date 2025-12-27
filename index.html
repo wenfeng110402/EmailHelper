@@ -1,11 +1,315 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Email Designer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮件设计器</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #f2f2f2;
+            color: #111;
+        }
+
+        .shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .sidebar {
+            width: 340px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 12px;
+        }
+
+        .workspace {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 12px;
+        }
+
+        .brand {
+            font-weight: bold;
+            font-size: 16px;
+            padding: 6px 0 12px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 12px;
+        }
+
+        .panel {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+
+        .section-title {
+            margin: 0 0 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .muted {
+            margin: 0 0 10px;
+            color: #555;
+            font-size: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #333;
+            margin: 8px 0 4px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #bbb;
+            border-radius: 2px;
+            background: #fff;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 10px;
+            border: 1px solid #666;
+            background: #eee;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .btn.primary {
+            background: #2d6bff;
+            color: #fff;
+            border-color: #2d6bff;
+        }
+
+        .topbar {
+            border: 1px solid #ddd;
+            background: #fafafa;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar .title { font-weight: bold; }
+
+        .canvas-wrapper {
+            border: 1px solid #bbb;
+            background: #fff;
+            padding: 10px;
+            min-height: 520px;
+            overflow: auto;
+        }
+
+        #designerCanvas {
+            border: 1px dashed #999;
+            min-height: 480px;
+            padding: 10px;
+            outline: none;
+        }
+
+        #source {
+            width: 100%;
+            min-height: 180px;
+            border: 1px solid #bbb;
+            border-radius: 2px;
+            padding: 10px;
+            font-family: Consolas, monospace;
+        }
+
+        .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            border: 1px solid #777;
+            background: #fff;
+            padding: 6px 8px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .shell { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Email Designer</h1>
-    <p>Create and customize your email templates here.</p>
+    <div class="shell">
+        <div class="sidebar">
+            <div class="brand">Mail Designer</div>
+            <div class="panel">
+                <p class="section-title">收发配置</p>
+                <p class="muted">SMTP 环境变量：SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_FROM</p>
+                <label for="from">发件人 (可选)</label>
+                <input id="from" class="input" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
+                <label for="to">收件人</label>
+                <input id="to" class="input" placeholder="someone@example.com" />
+                <label for="subject">主题</label>
+                <input id="subject" class="input" placeholder="给邮件取个名字" />
+            </div>
+            <div class="panel">
+                <p class="section-title">快速样式</p>
+                <p class="muted">选中文本后点击样式，零代码微调。</p>
+                <div class="chips">
+                    <div class="chip" data-cmd="bold">加粗</div>
+                    <div class="chip" data-cmd="italic">斜体</div>
+                    <div class="chip" data-cmd="underline">下划线</div>
+                    <div class="chip" data-cmd="insertUnorderedList">项目符号</div>
+                    <div class="chip" data-cmd="insertOrderedList">编号列表</div>
+                    <div class="chip" data-cmd="justifyLeft">左对齐</div>
+                    <div class="chip" data-cmd="justifyCenter">居中</div>
+                    <div class="chip" data-cmd="justifyRight">右对齐</div>
+                </div>
+            </div>
+            <div class="panel">
+                <p class="section-title">动作</p>
+                <div class="toolbar">
+                    <button class="btn" onclick="loadTemplate()">载入模版</button>
+                    <button class="btn" onclick="pushCanvasToSource()">同步源码</button>
+                    <button class="btn primary" onclick="saveTemplate()">保存模版</button>
+                </div>
+                <div class="toolbar" style="margin-top:8px;">
+                    <button class="btn" onclick="sendMail()">发送测试</button>
+                </div>
+            </div>
+        </div>
+        <div class="workspace">
+            <div class="topbar">
+                <div class="title">可视化编辑</div>
+                <div class="muted">拖拽图片到画布里</div>
+            </div>
+            <div class="canvas-wrapper" onclick="designerCanvas.focus()">
+                <div id="designerCanvas" contenteditable="true" spellcheck="false"></div>
+            </div>
+            <div class="panel">
+                <p class="section-title">源码视图</p>
+                <p class="muted">保存/发送会用画布内容替换 body。</p>
+                <textarea id="source"></textarea>
+                <div class="toolbar" style="margin-top:8px;">
+                    <button class="btn" onclick="pullSourceToCanvas()">源码 → 画布</button>
+                    <button class="btn" onclick="pushCanvasToSource()">画布 → 源码</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const designerCanvas = document.getElementById('designerCanvas');
+        const sourceArea = document.getElementById('source');
+        const toInput = document.getElementById('to');
+        const subjectInput = document.getElementById('subject');
+        const fromInput = document.getElementById('from');
+
+        async function loadTemplate() {
+            const res = await fetch('/api/email');
+            const data = await res.json();
+            sourceArea.value = data.html || '';
+            pullSourceToCanvas();
+        }
+
+        function pullSourceToCanvas() {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(sourceArea.value || '', 'text/html');
+            designerCanvas.innerHTML = doc.body ? doc.body.innerHTML : '';
+        }
+
+        function pushCanvasToSource() {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(sourceArea.value || '', 'text/html');
+            if (doc.body) {
+                doc.body.innerHTML = designerCanvas.innerHTML;
+                sourceArea.value = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+            }
+            return sourceArea.value;
+        }
+
+        async function saveTemplate() {
+            const html = pushCanvasToSource();
+            await fetch('/api/email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ html })
+            });
+            toast('模版已保存');
+        }
+
+        async function sendMail() {
+            const html = pushCanvasToSource();
+            const to = toInput.value.trim();
+            const subject = subjectInput.value.trim() || '未命名模版';
+            if (!to) { toast('请填写收件人'); return; }
+            const payload = { to, subject, html };
+            const res = await fetch('/api/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                toast('已发送');
+            } else {
+                const data = await res.json();
+                toast(data.error || '发送失败');
+            }
+        }
+
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const cmd = chip.dataset.cmd;
+                document.execCommand(cmd, false, null);
+                designerCanvas.focus();
+            });
+        });
+
+        designerCanvas.addEventListener('dragover', e => e.preventDefault());
+        designerCanvas.addEventListener('drop', e => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = evt => {
+                    document.execCommand('insertImage', false, evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function toast(msg) {
+            const t = document.createElement('div');
+            t.textContent = msg;
+            t.style.position = 'fixed';
+            t.style.bottom = '16px';
+            t.style.right = '16px';
+            t.style.padding = '10px 12px';
+            t.style.background = '#333';
+            t.style.color = '#fff';
+            t.style.borderRadius = '2px';
+            t.style.zIndex = '9999';
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2000);
+        }
+
+        loadTemplate();
+    </script>
 </body>
 </html>
