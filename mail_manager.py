@@ -1,31 +1,31 @@
-from __future__ import annotations
-
 import os
 import smtplib
 from email.message import EmailMessage
-from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 
-app = Flask(__name__, static_folder=str(Path(__file__).parent))
-BASE_DIR = Path(__file__).parent
-EMAIL_FILE = BASE_DIR / "email-template.html"
-DESIGNER_FILE = BASE_DIR / "email-designer.html"
+# 尽量简单的写法，少封装，方便看懂和改。
+app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EMAIL_FILE = os.path.join(BASE_DIR, "email-template.html")
+DESIGNER_FILE = os.path.join(BASE_DIR, "email-designer.html")
 
 
-def load_email_html() -> str:
-    if not EMAIL_FILE.exists():
+def load_email_html():
+    if not os.path.exists(EMAIL_FILE):
         return ""
-    return EMAIL_FILE.read_text(encoding="utf-8")
+    with open(EMAIL_FILE, "r", encoding="utf-8") as f:
+        return f.read()
 
 
-def save_email_html(html: str) -> None:
-    EMAIL_FILE.write_text(html, encoding="utf-8")
+def save_email_html(html):
+    with open(EMAIL_FILE, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
-def build_message(to_address: str, subject: str, html: str) -> EmailMessage:
+def build_message(to_address, subject, html):
     msg = EmailMessage()
-    from_address = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", ""))
+    from_address = os.getenv("SMTP_FROM") or os.getenv("SMTP_USER") or ""
     msg["From"] = from_address
     msg["To"] = to_address
     msg["Subject"] = subject
@@ -36,7 +36,8 @@ def build_message(to_address: str, subject: str, html: str) -> EmailMessage:
 
 @app.route("/")
 def serve_designer():
-    return send_from_directory(BASE_DIR, DESIGNER_FILE.name)
+    # 直接返回可视化编辑器页面
+    return send_from_directory(BASE_DIR, os.path.basename(DESIGNER_FILE))
 
 
 @app.route("/api/email", methods=["GET", "POST"])
@@ -44,7 +45,8 @@ def email_template():
     if request.method == "GET":
         return jsonify({"html": load_email_html()})
 
-    data = request.get_json(force=True, silent=True) or {}
+    # 简单处理：获取 body 里的 html 字段并保存
+    data = request.get_json(silent=True) or {}
     html = data.get("html", "")
     save_email_html(html)
     return jsonify({"status": "saved"})
@@ -52,7 +54,7 @@ def email_template():
 
 @app.route("/api/send", methods=["POST"])
 def send_email():
-    data = request.get_json(force=True, silent=True) or {}
+    data = request.get_json(silent=True) or {}
     to_address = data.get("to") or ""
     subject = data.get("subject") or "Untitled"
     html = data.get("html") or load_email_html()
@@ -69,22 +71,24 @@ def send_email():
 
     try:
         if port == 465:
-            with smtplib.SMTP_SSL(host, port) as server:
-                if username:
-                    server.login(username, password)
-                server.send_message(msg)
+            server = smtplib.SMTP_SSL(host, port)
         else:
-            with smtplib.SMTP(host, port) as server:
-                server.starttls()
-                if username:
-                    server.login(username, password)
-                server.send_message(msg)
-    except Exception as exc:  # pragma: no cover
+            server = smtplib.SMTP(host, port)
+            server.starttls()
+
+        if username:
+            server.login(username, password)
+
+        server.send_message(msg)
+        server.quit()
+    except Exception as exc:
+        # 初学者常见的直接返回错误字符串
         return jsonify({"error": str(exc)}), 500
 
     return jsonify({"status": "sent"})
 
 
 if __name__ == "__main__":
+    # 用最基本的方式启动，开启 debug 便于调试
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port, debug=True)
