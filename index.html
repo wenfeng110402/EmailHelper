@@ -109,6 +109,13 @@
 
         .topbar .title { font-weight: bold; }
 
+        .preview {
+            border: 1px solid #bbb;
+            background: #fff;
+            height: 260px;
+            width: 100%;
+        }
+
         .canvas-wrapper {
             border: 1px solid #bbb;
             background: #fff;
@@ -159,10 +166,38 @@
         <div class="sidebar">
             <div class="brand">Mail Designer</div>
             <div class="panel">
+                <p class="section-title">选择模版</p>
+                <p class="muted">选一个 html 文件，然后载入/保存。</p>
+                <label for="templateSelect">Template</label>
+                <select id="templateSelect" class="input"></select>
+                <div class="toolbar" style="margin-top:8px;">
+                    <button class="btn" onclick="refreshTemplates()">刷新列表</button>
+                    <button class="btn" onclick="loadTemplate()">载入模版</button>
+                </div>
+            </div>
+            <div class="panel">
                 <p class="section-title">收发配置</p>
-                <p class="muted">SMTP 环境变量：SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_FROM</p>
+                <p class="muted">现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。</p>
+
+                <label for="smtpHost">SMTP Host</label>
+                <input id="smtpHost" class="input" placeholder="smtp.mail.me.com" />
+
+                <label for="smtpPort">SMTP Port</label>
+                <input id="smtpPort" class="input" placeholder="587" />
+
+                <label for="smtpUser">SMTP User</label>
+                <input id="smtpUser" class="input" placeholder="your@email.com" />
+
+                <label for="smtpPass">SMTP Pass / App Password</label>
+                <input id="smtpPass" class="input" type="password" placeholder="(不会回显，保存到本地)" />
+
                 <label for="from">发件人 (可选)</label>
                 <input id="from" class="input" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
+
+                <div class="toolbar" style="margin-top:8px;">
+                    <button class="btn" onclick="loadSmtp()">读取SMTP</button>
+                    <button class="btn" onclick="saveSmtp()">保存SMTP</button>
+                </div>
                 <label for="to">收件人</label>
                 <input id="to" class="input" placeholder="someone@example.com" />
                 <label for="subject">主题</label>
@@ -185,7 +220,6 @@
             <div class="panel">
                 <p class="section-title">动作</p>
                 <div class="toolbar">
-                    <button class="btn" onclick="loadTemplate()">载入模版</button>
                     <button class="btn" onclick="pushCanvasToSource()">同步源码</button>
                     <button class="btn primary" onclick="saveTemplate()">保存模版</button>
                 </div>
@@ -198,6 +232,11 @@
             <div class="topbar">
                 <div class="title">可视化编辑</div>
                 <div class="muted">拖拽图片到画布里</div>
+            </div>
+            <div class="panel">
+                <p class="section-title">预览</p>
+                <p class="muted">完整HTML渲染</p>
+                <iframe id="previewFrame" class="preview"></iframe>
             </div>
             <div class="canvas-wrapper" onclick="designerCanvas.focus()">
                 <div id="designerCanvas" contenteditable="true" spellcheck="false"></div>
@@ -220,12 +259,76 @@
         const toInput = document.getElementById('to');
         const subjectInput = document.getElementById('subject');
         const fromInput = document.getElementById('from');
+        const smtpHostInput = document.getElementById('smtpHost');
+        const smtpPortInput = document.getElementById('smtpPort');
+        const smtpUserInput = document.getElementById('smtpUser');
+        const smtpPassInput = document.getElementById('smtpPass');
+        const templateSelect = document.getElementById('templateSelect');
+        const previewFrame = document.getElementById('previewFrame');
+
+        function getSelectedTemplateName() {
+            return templateSelect.value || 'email-template.html';
+        }
+
+        async function refreshTemplates() {
+            const res = await fetch('/api/templates');
+            const data = await res.json();
+            const list = data.templates || [];
+            const current = getSelectedTemplateName();
+            templateSelect.innerHTML = '';
+            for (const name of list) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                templateSelect.appendChild(opt);
+            }
+            // 尽量保持当前选择
+            if (list.includes(current)) {
+                templateSelect.value = current;
+            } else if (list.length > 0) {
+                templateSelect.value = list[0];
+            }
+        }
+
+        async function loadSmtp() {
+            const res = await fetch('/api/smtp');
+            const data = await res.json();
+            smtpHostInput.value = data.host || '';
+            smtpPortInput.value = data.port || '';
+            smtpUserInput.value = data.user || '';
+            // 密码服务端不会回传
+            fromInput.value = data.from || fromInput.value;
+            toast('SMTP 已读取');
+        }
+
+        async function saveSmtp() {
+            const payload = {
+                host: smtpHostInput.value.trim(),
+                port: smtpPortInput.value.trim(),
+                user: smtpUserInput.value.trim(),
+                pass: smtpPassInput.value.trim(),
+                from: fromInput.value.trim()
+            };
+            const res = await fetch('/api/smtp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                smtpPassInput.value = '';
+                toast('SMTP 已保存');
+            } else {
+                toast('保存失败');
+            }
+        }
 
         async function loadTemplate() {
-            const res = await fetch('/api/email');
+            const name = getSelectedTemplateName();
+            const res = await fetch('/api/template?name=' + encodeURIComponent(name));
             const data = await res.json();
             sourceArea.value = data.html || '';
             pullSourceToCanvas();
+            updatePreview();
         }
 
         function pullSourceToCanvas() {
@@ -241,15 +344,22 @@
                 doc.body.innerHTML = designerCanvas.innerHTML;
                 sourceArea.value = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
             }
+            updatePreview();
             return sourceArea.value;
+        }
+
+        function updatePreview() {
+            // 用 iframe 的 srcdoc 渲染完整 HTML（包含 head 的样式）
+            previewFrame.srcdoc = sourceArea.value || '';
         }
 
         async function saveTemplate() {
             const html = pushCanvasToSource();
-            await fetch('/api/email', {
+            const name = getSelectedTemplateName();
+            await fetch('/api/template', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ html })
+                body: JSON.stringify({ name, html })
             });
             toast('模版已保存');
         }
@@ -268,8 +378,16 @@
             if (res.ok) {
                 toast('已发送');
             } else {
-                const data = await res.json();
-                toast(data.error || '发送失败');
+                // 兼容服务端不是 JSON 的情况
+                let msg = '发送失败';
+                try {
+                    const data = await res.json();
+                    msg = data.error || msg;
+                } catch (e) {
+                    const text = await res.text();
+                    if (text) msg = text;
+                }
+                toast(msg);
             }
         }
 
@@ -309,7 +427,8 @@
             setTimeout(() => t.remove(), 2000);
         }
 
-        loadTemplate();
+        refreshTemplates().then(loadTemplate);
+        loadSmtp();
     </script>
 </body>
 </html>
