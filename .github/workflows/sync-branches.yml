@@ -1,0 +1,50 @@
+name: Sync Branches
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync to gh-pages
+        run: |
+          # Get current branch name
+          CURRENT_BRANCH=$(git branch --show-current)
+          echo "Current branch: $CURRENT_BRANCH"
+          
+          # Check if gh-pages branch exists
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            echo "gh-pages branch exists, syncing..."
+            
+            # Fetch gh-pages branch
+            git fetch origin gh-pages:gh-pages
+            
+            # Checkout gh-pages
+            git checkout gh-pages
+            
+            # Merge from source branch
+            git merge origin/$CURRENT_BRANCH --no-edit -m "Auto-sync from $CURRENT_BRANCH"
+            
+            # Push changes
+            git push origin gh-pages
+            
+            echo "Successfully synced $CURRENT_BRANCH to gh-pages"
+          else
+            echo "gh-pages branch does not exist, skipping sync"
+          fi

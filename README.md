@@ -46,3 +46,11 @@ Set these env vars:
 - `SMTP_FROM` (optional)
 
 Then fill the "to" and "subject" in the page and click send.
+
+## Branch Synchronization / 分支同步
+
+This repository is configured with automatic branch synchronization. When you commit to `master` or `main` branch, GitHub Actions will automatically sync changes to `gh-pages` branch.
+
+此仓库配置了自动分支同步功能。当你提交到 `master` 或 `main` 分支时，GitHub Actions 会自动将更改同步到 `gh-pages` 分支。
+
+For more details, see [BRANCH_SYNC.md](BRANCH_SYNC.md)

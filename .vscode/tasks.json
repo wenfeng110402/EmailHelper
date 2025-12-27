@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Git: Sync current branch",
+      "type": "shell",
+      "command": "git",
+      "args": [
+        "pull",
+        "--rebase",
+        "&&",
+        "git",
+        "push"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Git: Push and sync to gh-pages",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "BRANCH=$(git branch --show-current) && git push origin $BRANCH && echo 'Pushed to $BRANCH. GitHub Actions will sync to gh-pages automatically.'"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Git: Manual sync to gh-pages",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "BRANCH=$(git branch --show-current) && git checkout gh-pages && git merge $BRANCH --no-edit && git push origin gh-pages && git checkout $BRANCH"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Flask Server",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "mail_manager.py"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
