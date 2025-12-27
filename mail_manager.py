@@ -1,4 +1,5 @@
 import os
+import json
 import smtplib
 from email.message import EmailMessage
 
@@ -9,6 +10,56 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EMAIL_FILE = os.path.join(BASE_DIR, "email-template.html")
 DESIGNER_FILE = os.path.join(BASE_DIR, "email-designer.html")
+SMTP_FILE = os.path.join(BASE_DIR, "smtp.json")
+
+
+def load_smtp_config():
+    # 环境变量优先；没有的话再读 smtp.json
+    cfg = {
+        "host": os.getenv("SMTP_HOST") or "",
+        "port": os.getenv("SMTP_PORT") or "",
+        "user": os.getenv("SMTP_USER") or "",
+        "pass": os.getenv("SMTP_PASS") or "",
+        "from": os.getenv("SMTP_FROM") or "",
+    }
+
+    if os.path.exists(SMTP_FILE):
+        try:
+            with open(SMTP_FILE, "r", encoding="utf-8") as f:
+                file_cfg = json.load(f)
+            if not cfg["host"]:
+                cfg["host"] = str(file_cfg.get("host", ""))
+            if not cfg["port"]:
+                cfg["port"] = str(file_cfg.get("port", ""))
+            if not cfg["user"]:
+                cfg["user"] = str(file_cfg.get("user", ""))
+            if not cfg["pass"]:
+                cfg["pass"] = str(file_cfg.get("pass", ""))
+            if not cfg["from"]:
+                cfg["from"] = str(file_cfg.get("from", ""))
+        except Exception:
+            pass
+
+    return cfg
+
+
+def save_smtp_config(new_cfg):
+    # 保存到 smtp.json（只是本地文件，别上传 GitHub）
+    old = {}
+    if os.path.exists(SMTP_FILE):
+        try:
+            with open(SMTP_FILE, "r", encoding="utf-8") as f:
+                old = json.load(f) or {}
+        except Exception:
+            old = {}
+
+    merged = dict(old)
+    for k in ["host", "port", "user", "pass", "from"]:
+        if k in new_cfg and str(new_cfg.get(k, "")).strip() != "":
+            merged[k] = new_cfg.get(k)
+
+    with open(SMTP_FILE, "w", encoding="utf-8") as f:
+        json.dump(merged, f, ensure_ascii=False, indent=2)
 
 
 def load_email_html():
@@ -40,6 +91,19 @@ def serve_designer():
     return send_from_directory(BASE_DIR, os.path.basename(DESIGNER_FILE))
 
 
+@app.route("/api/smtp", methods=["GET", "POST"])
+def smtp_config():
+    if request.method == "GET":
+        cfg = load_smtp_config()
+        # 不把密码明文回传到网页（避免无意泄露）
+        cfg["pass"] = ""
+        return jsonify(cfg)
+
+    data = request.get_json(silent=True) or {}
+    save_smtp_config(data)
+    return jsonify({"status": "saved"})
+
+
 @app.route("/api/email", methods=["GET", "POST"])
 def email_template():
     if request.method == "GET":
@@ -64,20 +128,44 @@ def send_email():
 
     msg = build_message(to_address, subject, html)
 
-    host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    username = os.getenv("SMTP_USER", "")
-    password = os.getenv("SMTP_PASS", "")
+    cfg = load_smtp_config()
+    host = cfg.get("host", "")
+    username = cfg.get("user", "")
+    password = cfg.get("pass", "")
+    from_address = cfg.get("from", "")
+    port_str = str(cfg.get("port", "")).strip() or "587"
+    port = int(port_str)
+
+    # 如果网页里填了 from，就用它覆盖邮件 From
+    if from_address:
+        if "From" in msg:
+            # EmailMessage 不允许重复的 From 头
+            msg.replace_header("From", from_address)
+        else:
+            msg["From"] = from_address
+
+    missing = []
+    if not host:
+        missing.append("SMTP_HOST")
+    if not username:
+        missing.append("SMTP_USER")
+    if not password:
+        missing.append("SMTP_PASS")
+    if missing:
+        return jsonify({
+            "error": "Missing SMTP config: " + ", ".join(missing) + ". Set env vars (same terminal) or create smtp.json, then restart mail_manager.py"
+        }), 400
 
     try:
         if port == 465:
             server = smtplib.SMTP_SSL(host, port)
         else:
             server = smtplib.SMTP(host, port)
+            server.ehlo()
             server.starttls()
+            server.ehlo()
 
-        if username:
-            server.login(username, password)
+        server.login(username, password)
 
         server.send_message(msg)
         server.quit()

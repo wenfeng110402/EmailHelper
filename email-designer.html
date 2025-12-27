@@ -160,9 +160,27 @@
             <div class="brand">Mail Designer</div>
             <div class="panel">
                 <p class="section-title">收发配置</p>
-                <p class="muted">SMTP 环境变量：SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_FROM</p>
+                <p class="muted">现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。</p>
+
+                <label for="smtpHost">SMTP Host</label>
+                <input id="smtpHost" class="input" placeholder="smtp.mail.me.com" />
+
+                <label for="smtpPort">SMTP Port</label>
+                <input id="smtpPort" class="input" placeholder="587" />
+
+                <label for="smtpUser">SMTP User</label>
+                <input id="smtpUser" class="input" placeholder="your@email.com" />
+
+                <label for="smtpPass">SMTP Pass / App Password</label>
+                <input id="smtpPass" class="input" type="password" placeholder="(不会回显，保存到本地)" />
+
                 <label for="from">发件人 (可选)</label>
                 <input id="from" class="input" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
+
+                <div class="toolbar" style="margin-top:8px;">
+                    <button class="btn" onclick="loadSmtp()">读取SMTP</button>
+                    <button class="btn" onclick="saveSmtp()">保存SMTP</button>
+                </div>
                 <label for="to">收件人</label>
                 <input id="to" class="input" placeholder="someone@example.com" />
                 <label for="subject">主题</label>
@@ -220,6 +238,42 @@
         const toInput = document.getElementById('to');
         const subjectInput = document.getElementById('subject');
         const fromInput = document.getElementById('from');
+        const smtpHostInput = document.getElementById('smtpHost');
+        const smtpPortInput = document.getElementById('smtpPort');
+        const smtpUserInput = document.getElementById('smtpUser');
+        const smtpPassInput = document.getElementById('smtpPass');
+
+        async function loadSmtp() {
+            const res = await fetch('/api/smtp');
+            const data = await res.json();
+            smtpHostInput.value = data.host || '';
+            smtpPortInput.value = data.port || '';
+            smtpUserInput.value = data.user || '';
+            // 密码服务端不会回传
+            fromInput.value = data.from || fromInput.value;
+            toast('SMTP 已读取');
+        }
+
+        async function saveSmtp() {
+            const payload = {
+                host: smtpHostInput.value.trim(),
+                port: smtpPortInput.value.trim(),
+                user: smtpUserInput.value.trim(),
+                pass: smtpPassInput.value.trim(),
+                from: fromInput.value.trim()
+            };
+            const res = await fetch('/api/smtp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                smtpPassInput.value = '';
+                toast('SMTP 已保存');
+            } else {
+                toast('保存失败');
+            }
+        }
 
         async function loadTemplate() {
             const res = await fetch('/api/email');
@@ -310,6 +364,7 @@
         }
 
         loadTemplate();
+        loadSmtp();
     </script>
 </body>
 </html>
