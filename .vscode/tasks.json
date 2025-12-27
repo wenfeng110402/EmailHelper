@@ -4,13 +4,10 @@
     {
       "label": "Git: Sync current branch",
       "type": "shell",
-      "command": "git",
+      "command": "bash",
       "args": [
-        "pull",
-        "--rebase",
-        "&&",
-        "git",
-        "push"
+        "-c",
+        "git pull --rebase && git push"
       ],
       "presentation": {
         "reveal": "always",
@@ -24,7 +21,7 @@
       "command": "bash",
       "args": [
         "-c",
-        "BRANCH=$(git branch --show-current) && git push origin $BRANCH && echo 'Pushed to $BRANCH. GitHub Actions will sync to gh-pages automatically.'"
+        "BRANCH=$(git branch --show-current) && git push origin $BRANCH && echo \"Pushed to $BRANCH. GitHub Actions will sync to gh-pages automatically.\""
       ],
       "presentation": {
         "reveal": "always",

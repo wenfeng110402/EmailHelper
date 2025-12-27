@@ -39,7 +39,7 @@ jobs:
             git checkout gh-pages
             
             # Merge from source branch
-            git merge origin/$CURRENT_BRANCH --no-edit -m "Auto-sync from $CURRENT_BRANCH"
+            git merge origin/$CURRENT_BRANCH -m "Auto-sync from $CURRENT_BRANCH"
             
             # Push changes
             git push origin gh-pages
