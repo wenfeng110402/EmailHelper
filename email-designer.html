@@ -4,195 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>邮件设计器</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: radial-gradient(circle at 10% 20%, #c8d8ff 0, #e8f0ff 25%, #f7f7f7 55%, #e0ecff 100%);
-            --card: rgba(255, 255, 255, 0.8);
-            --panel: rgba(255, 255, 255, 0.65);
-            --accent: #2d6bff;
-            --text: #0f172a;
-            --muted: #5b6476;
-            --border: rgba(15, 23, 42, 0.08);
-            --shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
-            --radius: 16px;
-        }
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            min-height: 100vh;
-            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 32px;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #f2f2f2;
+            color: #111;
         }
+
         .shell {
-            max-width: 1220px;
+            max-width: 1200px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 22px;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(12px);
-        }
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 16px;
-        }
-        .sidebar {
-            padding: 22px;
+            padding: 16px;
             display: flex;
-            flex-direction: column;
             gap: 16px;
         }
+
+        .sidebar {
+            width: 340px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 12px;
+        }
+
+        .workspace {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 12px;
+        }
+
         .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            letter-spacing: 0.4px;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 6px 0 12px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 12px;
         }
-        .brand-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2d6bff, #7ad7f0);
-            box-shadow: 0 8px 24px rgba(45, 107, 255, 0.35);
+
+        .panel {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #fafafa;
         }
+
+        .section-title {
+            margin: 0 0 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .muted {
+            margin: 0 0 10px;
+            color: #555;
+            font-size: 12px;
+        }
+
         label {
-            font-size: 13px;
-            color: var(--muted);
             display: block;
-            margin-bottom: 6px;
+            font-size: 12px;
+            color: #333;
+            margin: 8px 0 4px;
         }
-        input, textarea, button, select {
-            font-family: inherit;
-        }
+
         .input {
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.9);
-            color: var(--text);
-            outline: none;
-            transition: border 0.2s ease, box-shadow 0.2s ease;
+            padding: 8px;
+            border: 1px solid #bbb;
+            border-radius: 2px;
+            background: #fff;
         }
-        .input:focus {
-            border-color: rgba(45, 107, 255, 0.5);
-            box-shadow: 0 0 0 3px rgba(45, 107, 255, 0.12);
-        }
+
         .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
+
         .btn {
-            border: none;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-weight: 600;
-            color: #0b1a34;
-            background: linear-gradient(135deg, #e9efff, #dce7ff);
+            padding: 8px 10px;
+            border: 1px solid #666;
+            background: #eee;
+            border-radius: 2px;
             cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.2s ease;
-            border: 1px solid var(--border);
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); }
-        .btn.primary { color: #fff; background: linear-gradient(135deg, #2d6bff, #5fa3ff); border: none; }
-        .btn.ghost { background: rgba(255,255,255,0.6); }
-        .section-title { font-weight: 700; margin: 0 0 6px; }
-        .muted { color: var(--muted); font-size: 13px; margin: 0; }
-        .workspace {
-            padding: 22px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+
+        .btn.primary {
+            background: #2d6bff;
+            color: #fff;
+            border-color: #2d6bff;
         }
+
         .topbar {
+            border: 1px solid #ddd;
+            background: #fafafa;
+            padding: 8px 10px;
+            margin-bottom: 12px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255,255,255,0.75);
-            border-radius: 14px 14px 10px 10px;
+            align-items: center;
         }
-        .topbar .title { font-weight: 700; letter-spacing: 0.4px; }
-        .preview-shell {
-            background: rgba(255,255,255,0.78);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
-            padding: 14px;
-        }
+
+        .topbar .title { font-weight: bold; }
+
         .canvas-wrapper {
-            border: 1px dashed rgba(45, 107, 255, 0.35);
-            border-radius: 12px;
-            background: #f7f9ff;
+            border: 1px solid #bbb;
+            background: #fff;
+            padding: 10px;
             min-height: 520px;
             overflow: auto;
-            padding: 18px;
         }
+
         #designerCanvas {
-            background: #fdfdfd;
-            border-radius: 12px;
-            box-shadow: 0 12px 38px rgba(15, 23, 42, 0.12);
-            padding: 18px;
+            border: 1px dashed #999;
             min-height: 480px;
+            padding: 10px;
             outline: none;
         }
+
         #source {
             width: 100%;
-            min-height: 160px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            padding: 12px;
-            font-family: "SFMono-Regular", Consolas, monospace;
-            background: rgba(255,255,255,0.85);
+            min-height: 180px;
+            border: 1px solid #bbb;
+            border-radius: 2px;
+            padding: 10px;
+            font-family: Consolas, monospace;
         }
-        .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
         .chip {
-            padding: 8px 10px;
-            border-radius: 8px;
-            background: rgba(45, 107, 255, 0.08);
-            color: #1b2c4f;
-            font-weight: 600;
-            font-size: 12px;
+            border: 1px solid #777;
+            background: #fff;
+            padding: 6px 8px;
+            border-radius: 2px;
             cursor: pointer;
-            border: 1px solid rgba(45, 107, 255, 0.2);
-            transition: transform 0.1s ease;
+            font-size: 12px;
         }
-        .chip:hover { transform: translateY(-1px); }
-        @media (max-width: 1024px) {
-            .shell { grid-template-columns: 1fr; }
+
+        @media (max-width: 900px) {
+            .shell { flex-direction: column; }
+            .sidebar { width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="shell">
-        <div class="card sidebar">
-            <div class="brand">
-                <div class="brand-dot"></div>
-                Canvas Mail Studio
-            </div>
+        <div class="sidebar">
+            <div class="brand">Mail Designer</div>
             <div class="panel">
                 <p class="section-title">收发配置</p>
                 <p class="muted">SMTP 环境变量：SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_FROM</p>
                 <label for="from">发件人 (可选)</label>
                 <input id="from" class="input" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
-                <label for="to" style="margin-top:10px;">收件人</label>
+                <label for="to">收件人</label>
                 <input id="to" class="input" placeholder="someone@example.com" />
-                <label for="subject" style="margin-top:10px;">主题</label>
+                <label for="subject">主题</label>
                 <input id="subject" class="input" placeholder="给邮件取个名字" />
             </div>
             <div class="panel">
@@ -212,8 +185,8 @@
             <div class="panel">
                 <p class="section-title">动作</p>
                 <div class="toolbar">
-                    <button class="btn ghost" onclick="loadTemplate()">载入模版</button>
-                    <button class="btn" onclick="pushCanvasToSource()">同步到源码</button>
+                    <button class="btn" onclick="loadTemplate()">载入模版</button>
+                    <button class="btn" onclick="pushCanvasToSource()">同步源码</button>
                     <button class="btn primary" onclick="saveTemplate()">保存模版</button>
                 </div>
                 <div class="toolbar" style="margin-top:8px;">
@@ -221,22 +194,20 @@
                 </div>
             </div>
         </div>
-        <div class="card workspace">
+        <div class="workspace">
             <div class="topbar">
                 <div class="title">可视化编辑</div>
-                <div class="muted">全屏编辑、拖拽图片可直接替换</div>
+                <div class="muted">拖拽图片到画布里</div>
             </div>
-            <div class="preview-shell">
-                <div class="canvas-wrapper" onclick="designerCanvas.focus()">
-                    <div id="designerCanvas" contenteditable="true" spellcheck="false"></div>
-                </div>
+            <div class="canvas-wrapper" onclick="designerCanvas.focus()">
+                <div id="designerCanvas" contenteditable="true" spellcheck="false"></div>
             </div>
             <div class="panel">
                 <p class="section-title">源码视图</p>
-                <p class="muted">保持头部样式不丢失，保存/发送时自动用画布内容替换 body。</p>
+                <p class="muted">保存/发送会用画布内容替换 body。</p>
                 <textarea id="source"></textarea>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn ghost" onclick="pullSourceToCanvas()">源码 → 画布</button>
+                    <button class="btn" onclick="pullSourceToCanvas()">源码 → 画布</button>
                     <button class="btn" onclick="pushCanvasToSource()">画布 → 源码</button>
                 </div>
             </div>
@@ -327,13 +298,12 @@
             const t = document.createElement('div');
             t.textContent = msg;
             t.style.position = 'fixed';
-            t.style.bottom = '22px';
-            t.style.right = '22px';
-            t.style.padding = '12px 14px';
-            t.style.background = 'rgba(15,23,42,0.88)';
+            t.style.bottom = '16px';
+            t.style.right = '16px';
+            t.style.padding = '10px 12px';
+            t.style.background = '#333';
             t.style.color = '#fff';
-            t.style.borderRadius = '10px';
-            t.style.boxShadow = '0 10px 30px rgba(15,23,42,0.25)';
+            t.style.borderRadius = '2px';
             t.style.zIndex = '9999';
             document.body.appendChild(t);
             setTimeout(() => t.remove(), 2000);
