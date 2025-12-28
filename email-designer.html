@@ -155,6 +155,35 @@
             font-size: 12px;
         }
 
+        .lang-toggle {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .lang-btn {
+            padding: 4px 10px;
+            border: 1px solid #999;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .lang-btn.active {
+            background: #2d6bff;
+            color: #fff;
+            border-color: #2d6bff;
+        }
+
+        .lang-btn:first-child {
+            border-radius: 2px 0 0 2px;
+        }
+
+        .lang-btn:last-child {
+            border-radius: 0 2px 2px 0;
+        }
+
         @media (max-width: 900px) {
             .shell { flex-direction: column; }
             .sidebar { width: 100%; }
@@ -165,19 +194,23 @@
     <div class="shell">
         <div class="sidebar">
             <div class="brand">Mail Designer</div>
+            <div class="lang-toggle">
+                <button class="lang-btn" data-lang="zh" onclick="switchLang('zh')">中文</button>
+                <button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button>
+            </div>
             <div class="panel">
-                <p class="section-title">选择模版</p>
-                <p class="muted">选一个 html 文件，然后载入/保存。</p>
+                <p class="section-title" data-i18n="selectTemplate">选择模版</p>
+                <p class="muted" data-i18n="selectTemplateDesc">选一个 html 文件，然后载入/保存。</p>
                 <label for="templateSelect">Template</label>
                 <select id="templateSelect" class="input"></select>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="refreshTemplates()">刷新列表</button>
-                    <button class="btn" onclick="loadTemplate()">载入模版</button>
+                    <button class="btn" onclick="refreshTemplates()" data-i18n="refreshList">刷新列表</button>
+                    <button class="btn" onclick="loadTemplate()" data-i18n="loadTemplate">载入模版</button>
                 </div>
             </div>
             <div class="panel">
-                <p class="section-title">收发配置</p>
-                <p class="muted">现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。</p>
+                <p class="section-title" data-i18n="mailSettings">收发配置</p>
+                <p class="muted" data-i18n="mailSettingsDesc">现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。</p>
 
                 <label for="smtpHost">SMTP Host</label>
                 <input id="smtpHost" class="input" placeholder="smtp.mail.me.com" />
@@ -189,65 +222,65 @@
                 <input id="smtpUser" class="input" placeholder="your@email.com" />
 
                 <label for="smtpPass">SMTP Pass / App Password</label>
-                <input id="smtpPass" class="input" type="password" placeholder="(不会回显，保存到本地)" />
+                <input id="smtpPass" class="input" type="password" data-i18n-placeholder="smtpPassPlaceholder" placeholder="(不会回显，保存到本地)" />
 
-                <label for="from">发件人 (可选)</label>
-                <input id="from" class="input" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
+                <label for="from" data-i18n="fromLabel">发件人 (可选)</label>
+                <input id="from" class="input" data-i18n-placeholder="fromPlaceholder" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
 
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="loadSmtp()">读取SMTP</button>
-                    <button class="btn" onclick="saveSmtp()">保存SMTP</button>
+                    <button class="btn" onclick="loadSmtp()" data-i18n="loadSmtp">读取SMTP</button>
+                    <button class="btn" onclick="saveSmtp()" data-i18n="saveSmtp">保存SMTP</button>
                 </div>
-                <label for="to">收件人</label>
+                <label for="to" data-i18n="recipientLabel">收件人</label>
                 <input id="to" class="input" placeholder="someone@example.com" />
-                <label for="subject">主题</label>
-                <input id="subject" class="input" placeholder="给邮件取个名字" />
+                <label for="subject" data-i18n="subjectLabel">主题</label>
+                <input id="subject" class="input" data-i18n-placeholder="subjectPlaceholder" placeholder="给邮件取个名字" />
             </div>
             <div class="panel">
-                <p class="section-title">快速样式</p>
-                <p class="muted">选中文本后点击样式，零代码微调。</p>
+                <p class="section-title" data-i18n="quickStyles">快速样式</p>
+                <p class="muted" data-i18n="quickStylesDesc">选中文本后点击样式，零代码微调。</p>
                 <div class="chips">
-                    <div class="chip" data-cmd="bold">加粗</div>
-                    <div class="chip" data-cmd="italic">斜体</div>
-                    <div class="chip" data-cmd="underline">下划线</div>
-                    <div class="chip" data-cmd="insertUnorderedList">项目符号</div>
-                    <div class="chip" data-cmd="insertOrderedList">编号列表</div>
-                    <div class="chip" data-cmd="justifyLeft">左对齐</div>
-                    <div class="chip" data-cmd="justifyCenter">居中</div>
-                    <div class="chip" data-cmd="justifyRight">右对齐</div>
+                    <div class="chip" data-cmd="bold" data-i18n="bold">加粗</div>
+                    <div class="chip" data-cmd="italic" data-i18n="italic">斜体</div>
+                    <div class="chip" data-cmd="underline" data-i18n="underline">下划线</div>
+                    <div class="chip" data-cmd="insertUnorderedList" data-i18n="bulletList">项目符号</div>
+                    <div class="chip" data-cmd="insertOrderedList" data-i18n="numberedList">编号列表</div>
+                    <div class="chip" data-cmd="justifyLeft" data-i18n="alignLeft">左对齐</div>
+                    <div class="chip" data-cmd="justifyCenter" data-i18n="alignCenter">居中</div>
+                    <div class="chip" data-cmd="justifyRight" data-i18n="alignRight">右对齐</div>
                 </div>
             </div>
             <div class="panel">
-                <p class="section-title">动作</p>
+                <p class="section-title" data-i18n="actions">动作</p>
                 <div class="toolbar">
-                    <button class="btn" onclick="pushCanvasToSource()">同步源码</button>
-                    <button class="btn primary" onclick="saveTemplate()">保存模版</button>
+                    <button class="btn" onclick="pushCanvasToSource()" data-i18n="syncSource">同步源码</button>
+                    <button class="btn primary" onclick="saveTemplate()" data-i18n="saveTemplate">保存模版</button>
                 </div>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="sendMail()">发送测试</button>
+                    <button class="btn" onclick="sendMail()" data-i18n="sendTest">发送测试</button>
                 </div>
             </div>
         </div>
         <div class="workspace">
             <div class="topbar">
-                <div class="title">可视化编辑</div>
-                <div class="muted">拖拽图片到画布里</div>
+                <div class="title" data-i18n="visualEditor">可视化编辑</div>
+                <div class="muted" data-i18n="dragImage">拖拽图片到画布里</div>
             </div>
             <div class="panel">
-                <p class="section-title">预览</p>
-                <p class="muted">完整HTML渲染</p>
+                <p class="section-title" data-i18n="preview">预览</p>
+                <p class="muted" data-i18n="previewDesc">完整HTML渲染</p>
                 <iframe id="previewFrame" class="preview"></iframe>
             </div>
             <div class="canvas-wrapper" onclick="designerCanvas.focus()">
                 <div id="designerCanvas" contenteditable="true" spellcheck="false"></div>
             </div>
             <div class="panel">
-                <p class="section-title">源码视图</p>
-                <p class="muted">保存/发送会用画布内容替换 body。</p>
+                <p class="section-title" data-i18n="sourceView">源码视图</p>
+                <p class="muted" data-i18n="sourceViewDesc">保存/发送会用画布内容替换 body。</p>
                 <textarea id="source"></textarea>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="pullSourceToCanvas()">源码 → 画布</button>
-                    <button class="btn" onclick="pushCanvasToSource()">画布 → 源码</button>
+                    <button class="btn" onclick="pullSourceToCanvas()" data-i18n="sourceToCanvas">源码 → 画布</button>
+                    <button class="btn" onclick="pushCanvasToSource()" data-i18n="canvasToSource">画布 → 源码</button>
                 </div>
             </div>
         </div>
@@ -265,6 +298,134 @@
         const smtpPassInput = document.getElementById('smtpPass');
         const templateSelect = document.getElementById('templateSelect');
         const previewFrame = document.getElementById('previewFrame');
+
+        // i18n translations
+        const translations = {
+            zh: {
+                selectTemplate: '选择模版',
+                selectTemplateDesc: '选一个 html 文件，然后载入/保存。',
+                refreshList: '刷新列表',
+                loadTemplate: '载入模版',
+                mailSettings: '收发配置',
+                mailSettingsDesc: '现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。',
+                smtpPassPlaceholder: '(不会回显，保存到本地)',
+                fromLabel: '发件人 (可选)',
+                fromPlaceholder: '默认取 SMTP_FROM 或 SMTP_USER',
+                loadSmtp: '读取SMTP',
+                saveSmtp: '保存SMTP',
+                recipientLabel: '收件人',
+                subjectLabel: '主题',
+                subjectPlaceholder: '给邮件取个名字',
+                quickStyles: '快速样式',
+                quickStylesDesc: '选中文本后点击样式，零代码微调。',
+                bold: '加粗',
+                italic: '斜体',
+                underline: '下划线',
+                bulletList: '项目符号',
+                numberedList: '编号列表',
+                alignLeft: '左对齐',
+                alignCenter: '居中',
+                alignRight: '右对齐',
+                actions: '动作',
+                syncSource: '同步源码',
+                saveTemplate: '保存模版',
+                sendTest: '发送测试',
+                visualEditor: '可视化编辑',
+                dragImage: '拖拽图片到画布里',
+                preview: '预览',
+                previewDesc: '完整HTML渲染',
+                sourceView: '源码视图',
+                sourceViewDesc: '保存/发送会用画布内容替换 body。',
+                sourceToCanvas: '源码 → 画布',
+                canvasToSource: '画布 → 源码',
+                toastSmtpLoaded: 'SMTP 已读取',
+                toastSmtpSaved: 'SMTP 已保存',
+                toastSaveFailed: '保存失败',
+                toastTemplateSaved: '模版已保存',
+                toastEnterRecipient: '请填写收件人',
+                toastSent: '已发送',
+                toastSendFailed: '发送失败',
+                defaultSubject: '未命名模版'
+            },
+            en: {
+                selectTemplate: 'Select Template',
+                selectTemplateDesc: 'Choose an HTML file, then load/save.',
+                refreshList: 'Refresh List',
+                loadTemplate: 'Load Template',
+                mailSettings: 'Mail Settings',
+                mailSettingsDesc: 'Configure SMTP here (saved to local smtp.json).',
+                smtpPassPlaceholder: '(Won\'t be shown, saved locally)',
+                fromLabel: 'From (optional)',
+                fromPlaceholder: 'Defaults to SMTP_FROM or SMTP_USER',
+                loadSmtp: 'Load SMTP',
+                saveSmtp: 'Save SMTP',
+                recipientLabel: 'Recipient',
+                subjectLabel: 'Subject',
+                subjectPlaceholder: 'Name your email',
+                quickStyles: 'Quick Styles',
+                quickStylesDesc: 'Select text, then click a style for zero-code tweaking.',
+                bold: 'Bold',
+                italic: 'Italic',
+                underline: 'Underline',
+                bulletList: 'Bullet List',
+                numberedList: 'Numbered List',
+                alignLeft: 'Align Left',
+                alignCenter: 'Center',
+                alignRight: 'Align Right',
+                actions: 'Actions',
+                syncSource: 'Sync Source',
+                saveTemplate: 'Save Template',
+                sendTest: 'Send Test',
+                visualEditor: 'Visual Editor',
+                dragImage: 'Drag images to canvas',
+                preview: 'Preview',
+                previewDesc: 'Full HTML rendering',
+                sourceView: 'Source View',
+                sourceViewDesc: 'Save/Send will replace body with canvas content.',
+                sourceToCanvas: 'Source → Canvas',
+                canvasToSource: 'Canvas → Source',
+                toastSmtpLoaded: 'SMTP loaded',
+                toastSmtpSaved: 'SMTP saved',
+                toastSaveFailed: 'Save failed',
+                toastTemplateSaved: 'Template saved',
+                toastEnterRecipient: 'Please enter recipient',
+                toastSent: 'Sent',
+                toastSendFailed: 'Send failed',
+                defaultSubject: 'Untitled Template'
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'zh';
+
+        function switchLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            // Update button states
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Update all text elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+        }
 
         function getSelectedTemplateName() {
             return templateSelect.value || 'email-template.html';
@@ -298,7 +459,7 @@
             smtpUserInput.value = data.user || '';
             // 密码服务端不会回传
             fromInput.value = data.from || fromInput.value;
-            toast('SMTP 已读取');
+            toast(translations[currentLang].toastSmtpLoaded);
         }
 
         async function saveSmtp() {
@@ -316,9 +477,9 @@
             });
             if (res.ok) {
                 smtpPassInput.value = '';
-                toast('SMTP 已保存');
+                toast(translations[currentLang].toastSmtpSaved);
             } else {
-                toast('保存失败');
+                toast(translations[currentLang].toastSaveFailed);
             }
         }
 
@@ -361,14 +522,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, html })
             });
-            toast('模版已保存');
+            toast(translations[currentLang].toastTemplateSaved);
         }
 
         async function sendMail() {
             const html = pushCanvasToSource();
             const to = toInput.value.trim();
-            const subject = subjectInput.value.trim() || '未命名模版';
-            if (!to) { toast('请填写收件人'); return; }
+            const subject = subjectInput.value.trim() || translations[currentLang].defaultSubject;
+            if (!to) { toast(translations[currentLang].toastEnterRecipient); return; }
             const payload = { to, subject, html };
             const res = await fetch('/api/send', {
                 method: 'POST',
@@ -376,10 +537,10 @@
                 body: JSON.stringify(payload)
             });
             if (res.ok) {
-                toast('已发送');
+                toast(translations[currentLang].toastSent);
             } else {
                 // 兼容服务端不是 JSON 的情况
-                let msg = '发送失败';
+                let msg = translations[currentLang].toastSendFailed;
                 try {
                     const data = await res.json();
                     msg = data.error || msg;
@@ -427,6 +588,8 @@
             setTimeout(() => t.remove(), 2000);
         }
 
+        // Initialize language on page load
+        switchLang(currentLang);
         refreshTemplates().then(loadTemplate);
         loadSmtp();
     </script>
