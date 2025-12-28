@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>邮件设计器</title>
+    <title>Email Designer</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -155,6 +155,37 @@
             font-size: 12px;
         }
 
+        .notice-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 0 auto 20px;
+            max-width: 1200px;
+        }
+
+        .notice-banner h2 {
+            margin: 0 0 12px;
+            color: #856404;
+            font-size: 18px;
+        }
+
+        .notice-banner p {
+            margin: 8px 0;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .notice-banner strong {
+            color: #664d03;
+        }
+
+        .notice-banner a {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
         @media (max-width: 900px) {
             .shell { flex-direction: column; }
             .sidebar { width: 100%; }
@@ -162,22 +193,41 @@
     </style>
 </head>
 <body>
+    <div class="notice-banner">
+        <h2>⚠️ GitHub Pages Preview Only - No Functionality</h2>
+        <p>
+            <strong>Important:</strong> This GitHub Pages site is a static preview only and does not provide any functional features. 
+            The application requires a Python backend server to work properly.
+        </p>
+        <p>
+            <strong>To use the full application:</strong>
+        </p>
+        <ul style="margin: 8px 0; padding-left: 24px; color: #856404;">
+            <li>Clone this repository and follow the <strong>README.md</strong> instructions to deploy locally</li>
+            <li>Or use <strong>GitHub Codespaces</strong> to run the application in a cloud environment</li>
+        </ul>
+        <p>
+            <strong>Security Notice:</strong> During setup, you will need to configure your email SMTP credentials (host, port, username, password). 
+            Sensitive data such as your <strong>SMTP password will be stored locally</strong> in <code>smtp.json</code> on your machine. 
+            Never commit or share this file publicly.
+        </p>
+    </div>
     <div class="shell">
         <div class="sidebar">
             <div class="brand">Mail Designer</div>
             <div class="panel">
-                <p class="section-title">选择模版</p>
-                <p class="muted">选一个 html 文件，然后载入/保存。</p>
+                <p class="section-title">Select Template</p>
+                <p class="muted">Choose an HTML file, then load/save.</p>
                 <label for="templateSelect">Template</label>
                 <select id="templateSelect" class="input"></select>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="refreshTemplates()">刷新列表</button>
-                    <button class="btn" onclick="loadTemplate()">载入模版</button>
+                    <button class="btn" onclick="refreshTemplates()">Refresh List</button>
+                    <button class="btn" onclick="loadTemplate()">Load Template</button>
                 </div>
             </div>
             <div class="panel">
-                <p class="section-title">收发配置</p>
-                <p class="muted">现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。</p>
+                <p class="section-title">Mail Settings</p>
+                <p class="muted">Configure SMTP here (saved to local smtp.json).</p>
 
                 <label for="smtpHost">SMTP Host</label>
                 <input id="smtpHost" class="input" placeholder="smtp.mail.me.com" />
@@ -189,65 +239,65 @@
                 <input id="smtpUser" class="input" placeholder="your@email.com" />
 
                 <label for="smtpPass">SMTP Pass / App Password</label>
-                <input id="smtpPass" class="input" type="password" placeholder="(不会回显，保存到本地)" />
+                <input id="smtpPass" class="input" type="password" placeholder="(Won't be shown, saved locally)" />
 
-                <label for="from">发件人 (可选)</label>
-                <input id="from" class="input" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
+                <label for="from">From (optional)</label>
+                <input id="from" class="input" placeholder="Defaults to SMTP_FROM or SMTP_USER" />
 
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="loadSmtp()">读取SMTP</button>
-                    <button class="btn" onclick="saveSmtp()">保存SMTP</button>
+                    <button class="btn" onclick="loadSmtp()">Load SMTP</button>
+                    <button class="btn" onclick="saveSmtp()">Save SMTP</button>
                 </div>
-                <label for="to">收件人</label>
+                <label for="to">Recipient</label>
                 <input id="to" class="input" placeholder="someone@example.com" />
-                <label for="subject">主题</label>
-                <input id="subject" class="input" placeholder="给邮件取个名字" />
+                <label for="subject">Subject</label>
+                <input id="subject" class="input" placeholder="Name your email" />
             </div>
             <div class="panel">
-                <p class="section-title">快速样式</p>
-                <p class="muted">选中文本后点击样式，零代码微调。</p>
+                <p class="section-title">Quick Styles</p>
+                <p class="muted">Select text, then click a style for zero-code tweaking.</p>
                 <div class="chips">
-                    <div class="chip" data-cmd="bold">加粗</div>
-                    <div class="chip" data-cmd="italic">斜体</div>
-                    <div class="chip" data-cmd="underline">下划线</div>
-                    <div class="chip" data-cmd="insertUnorderedList">项目符号</div>
-                    <div class="chip" data-cmd="insertOrderedList">编号列表</div>
-                    <div class="chip" data-cmd="justifyLeft">左对齐</div>
-                    <div class="chip" data-cmd="justifyCenter">居中</div>
-                    <div class="chip" data-cmd="justifyRight">右对齐</div>
+                    <div class="chip" data-cmd="bold">Bold</div>
+                    <div class="chip" data-cmd="italic">Italic</div>
+                    <div class="chip" data-cmd="underline">Underline</div>
+                    <div class="chip" data-cmd="insertUnorderedList">Bullet List</div>
+                    <div class="chip" data-cmd="insertOrderedList">Numbered List</div>
+                    <div class="chip" data-cmd="justifyLeft">Align Left</div>
+                    <div class="chip" data-cmd="justifyCenter">Center</div>
+                    <div class="chip" data-cmd="justifyRight">Align Right</div>
                 </div>
             </div>
             <div class="panel">
-                <p class="section-title">动作</p>
+                <p class="section-title">Actions</p>
                 <div class="toolbar">
-                    <button class="btn" onclick="pushCanvasToSource()">同步源码</button>
-                    <button class="btn primary" onclick="saveTemplate()">保存模版</button>
+                    <button class="btn" onclick="pushCanvasToSource()">Sync Source</button>
+                    <button class="btn primary" onclick="saveTemplate()">Save Template</button>
                 </div>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="sendMail()">发送测试</button>
+                    <button class="btn" onclick="sendMail()">Send Test</button>
                 </div>
             </div>
         </div>
         <div class="workspace">
             <div class="topbar">
-                <div class="title">可视化编辑</div>
-                <div class="muted">拖拽图片到画布里</div>
+                <div class="title">Visual Editor</div>
+                <div class="muted">Drag images to canvas</div>
             </div>
             <div class="panel">
-                <p class="section-title">预览</p>
-                <p class="muted">完整HTML渲染</p>
+                <p class="section-title">Preview</p>
+                <p class="muted">Full HTML rendering</p>
                 <iframe id="previewFrame" class="preview"></iframe>
             </div>
             <div class="canvas-wrapper" onclick="designerCanvas.focus()">
                 <div id="designerCanvas" contenteditable="true" spellcheck="false"></div>
             </div>
             <div class="panel">
-                <p class="section-title">源码视图</p>
-                <p class="muted">保存/发送会用画布内容替换 body。</p>
+                <p class="section-title">Source View</p>
+                <p class="muted">Save/Send will replace body with canvas content.</p>
                 <textarea id="source"></textarea>
                 <div class="toolbar" style="margin-top:8px;">
-                    <button class="btn" onclick="pullSourceToCanvas()">源码 → 画布</button>
-                    <button class="btn" onclick="pushCanvasToSource()">画布 → 源码</button>
+                    <button class="btn" onclick="pullSourceToCanvas()">Source → Canvas</button>
+                    <button class="btn" onclick="pushCanvasToSource()">Canvas → Source</button>
                 </div>
             </div>
         </div>
@@ -282,7 +332,7 @@
                 opt.textContent = name;
                 templateSelect.appendChild(opt);
             }
-            // 尽量保持当前选择
+            // Try to keep current selection
             if (list.includes(current)) {
                 templateSelect.value = current;
             } else if (list.length > 0) {
@@ -296,9 +346,9 @@
             smtpHostInput.value = data.host || '';
             smtpPortInput.value = data.port || '';
             smtpUserInput.value = data.user || '';
-            // 密码服务端不会回传
+            // Password won't be returned from server
             fromInput.value = data.from || fromInput.value;
-            toast('SMTP 已读取');
+            toast('SMTP loaded');
         }
 
         async function saveSmtp() {
@@ -316,9 +366,9 @@
             });
             if (res.ok) {
                 smtpPassInput.value = '';
-                toast('SMTP 已保存');
+                toast('SMTP saved');
             } else {
-                toast('保存失败');
+                toast('Save failed');
             }
         }
 
@@ -349,7 +399,7 @@
         }
 
         function updatePreview() {
-            // 用 iframe 的 srcdoc 渲染完整 HTML（包含 head 的样式）
+            // Use iframe srcdoc to render full HTML (including head styles)
             previewFrame.srcdoc = sourceArea.value || '';
         }
 
@@ -361,14 +411,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, html })
             });
-            toast('模版已保存');
+            toast('Template saved');
         }
 
         async function sendMail() {
             const html = pushCanvasToSource();
             const to = toInput.value.trim();
-            const subject = subjectInput.value.trim() || '未命名模版';
-            if (!to) { toast('请填写收件人'); return; }
+            const subject = subjectInput.value.trim() || 'Untitled Template';
+            if (!to) { toast('Please enter recipient'); return; }
             const payload = { to, subject, html };
             const res = await fetch('/api/send', {
                 method: 'POST',
@@ -376,10 +426,10 @@
                 body: JSON.stringify(payload)
             });
             if (res.ok) {
-                toast('已发送');
+                toast('Sent');
             } else {
-                // 兼容服务端不是 JSON 的情况
-                let msg = '发送失败';
+                // Handle non-JSON server responses
+                let msg = 'Send failed';
                 try {
                     const data = await res.json();
                     msg = data.error || msg;
