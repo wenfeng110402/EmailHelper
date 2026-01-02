@@ -86,8 +86,9 @@ def load_smtp_config():
     return cfg
 
 
-def save_smtp_config(new_cfg):
+def save_smtp_config(new_cfg, save_pass=False):
     # 保存到 smtp.json（只是本地文件，别上传 GitHub）
+    # save_pass=False 时不保存密码
     old = {}
     if os.path.exists(SMTP_FILE):
         try:
@@ -97,9 +98,13 @@ def save_smtp_config(new_cfg):
             old = {}
 
     merged = dict(old)
-    for k in ["host", "port", "user", "pass", "from"]:
+    for k in ["host", "port", "user", "from"]:
         if k in new_cfg and str(new_cfg.get(k, "")).strip() != "":
             merged[k] = new_cfg.get(k)
+    
+    # 只有明确要求时才保存密码
+    if save_pass and "pass" in new_cfg and str(new_cfg.get("pass", "")).strip() != "":
+        merged["pass"] = new_cfg.get("pass")
 
     with open(SMTP_FILE, "w", encoding="utf-8") as f:
         json.dump(merged, f, ensure_ascii=False, indent=2)
@@ -143,7 +148,8 @@ def smtp_config():
         return jsonify(cfg)
 
     data = request.get_json(silent=True) or {}
-    save_smtp_config(data)
+    # 默认不保存密码到文件
+    save_smtp_config(data, save_pass=False)
     return jsonify({"status": "saved"})
 
 
@@ -196,12 +202,23 @@ def send_email():
 
     msg = build_message(to_address, subject, html)
 
-    cfg = load_smtp_config()
-    host = cfg.get("host", "")
-    username = cfg.get("user", "")
-    password = cfg.get("pass", "")
-    from_address = cfg.get("from", "")
-    port_str = str(cfg.get("port", "")).strip() or "587"
+    # 优先使用请求中的临时配置，否则从环境变量/文件加载
+    smtp_data = data.get("smtp", {})
+    if smtp_data:
+        # 使用临时配置（不保存到文件）
+        host = smtp_data.get("host", "")
+        username = smtp_data.get("user", "")
+        password = smtp_data.get("pass", "")
+        from_address = smtp_data.get("from", "")
+        port_str = str(smtp_data.get("port", "")).strip() or "587"
+    else:
+        # 使用已保存的配置
+        cfg = load_smtp_config()
+        host = cfg.get("host", "")
+        username = cfg.get("user", "")
+        password = cfg.get("pass", "")
+        from_address = cfg.get("from", "")
+        port_str = str(cfg.get("port", "")).strip() or "587"
     port = int(port_str)
 
     # 如果网页里填了 from，就用它覆盖邮件 From

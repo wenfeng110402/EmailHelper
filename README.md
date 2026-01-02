@@ -37,9 +37,11 @@ Open in your browser:
 
 ## SMTP Configuration
 
-You can configure SMTP settings directly in the web interface. Your SMTP credentials will be saved locally in `smtp.json`.
+You can configure SMTP settings directly in the web interface.
 
-**Important**: The `smtp.json` file contains sensitive information (your SMTP password). Never commit or share this file publicly.
+**Security**: SMTP passwords are **NOT saved locally**. You need to enter your password each time you send an email. Only the host, port, user, and from fields can be saved (without password) for convenience.
+
+**Important**: If you choose to manually edit `smtp.json`, never commit or share this file publicly.
 
 ### Common SMTP Settings
 
@@ -82,8 +84,9 @@ Simply clone the repository and follow the installation steps above.
 
 ## Security Notice
 
-- SMTP passwords are stored locally in `smtp.json`
-- Keep your `smtp.json` file private (it's already in `.gitignore`)
+- **SMTP passwords are NOT saved locally** - you must enter your password each time you send
+- Only host, port, user, and from fields can be saved to `smtp.json` for convenience
+- Keep your `smtp.json` file private if you choose to manually add a password (it's already in `.gitignore`)
 - Use app-specific passwords when available instead of your main account password
 
 ## Files

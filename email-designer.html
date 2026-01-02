@@ -210,7 +210,7 @@
             </div>
             <div class="panel">
                 <p class="section-title" data-i18n="mailSettings">收发配置</p>
-                <p class="muted" data-i18n="mailSettingsDesc">现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。</p>
+                <p class="muted" data-i18n="mailSettingsDesc">SMTP配置仅在发送时使用，密码不会保存到本地。</p>
 
                 <label for="smtpHost">SMTP Host</label>
                 <input id="smtpHost" class="input" placeholder="smtp.mail.me.com" />
@@ -222,7 +222,7 @@
                 <input id="smtpUser" class="input" placeholder="your@email.com" />
 
                 <label for="smtpPass">SMTP Pass / App Password</label>
-                <input id="smtpPass" class="input" type="password" data-i18n-placeholder="smtpPassPlaceholder" placeholder="(不会回显，保存到本地)" />
+                <input id="smtpPass" class="input" type="password" data-i18n-placeholder="smtpPassPlaceholder" placeholder="密码仅用于发送，不保存" />
 
                 <label for="from" data-i18n="fromLabel">发件人 (可选)</label>
                 <input id="from" class="input" data-i18n-placeholder="fromPlaceholder" placeholder="默认取 SMTP_FROM 或 SMTP_USER" />
@@ -307,12 +307,12 @@
                 refreshList: '刷新列表',
                 loadTemplate: '载入模版',
                 mailSettings: '收发配置',
-                mailSettingsDesc: '现在可以直接在这里填 SMTP（会保存到本地 smtp.json）。',
-                smtpPassPlaceholder: '(不会回显，保存到本地)',
+                mailSettingsDesc: 'SMTP配置仅在发送时使用，密码不会保存到本地。',
+                smtpPassPlaceholder: '密码仅用于发送，不保存',
                 fromLabel: '发件人 (可选)',
                 fromPlaceholder: '默认取 SMTP_FROM 或 SMTP_USER',
                 loadSmtp: '读取SMTP',
-                saveSmtp: '保存SMTP',
+                saveSmtp: '保存配置(不含密码)',
                 recipientLabel: '收件人',
                 subjectLabel: '主题',
                 subjectPlaceholder: '给邮件取个名字',
@@ -353,12 +353,12 @@
                 refreshList: 'Refresh List',
                 loadTemplate: 'Load Template',
                 mailSettings: 'Mail Settings',
-                mailSettingsDesc: 'Configure SMTP here (saved to local smtp.json).',
-                smtpPassPlaceholder: '(Won\'t be shown, saved locally)',
+                mailSettingsDesc: 'SMTP config is only used when sending, password is not saved locally.',
+                smtpPassPlaceholder: 'Password only for sending, not saved',
                 fromLabel: 'From (optional)',
                 fromPlaceholder: 'Defaults to SMTP_FROM or SMTP_USER',
                 loadSmtp: 'Load SMTP',
-                saveSmtp: 'Save SMTP',
+                saveSmtp: 'Save Config (without password)',
                 recipientLabel: 'Recipient',
                 subjectLabel: 'Subject',
                 subjectPlaceholder: 'Name your email',
@@ -530,7 +530,17 @@
             const to = toInput.value.trim();
             const subject = subjectInput.value.trim() || translations[currentLang].defaultSubject;
             if (!to) { toast(translations[currentLang].toastEnterRecipient); return; }
-            const payload = { to, subject, html };
+            
+            // 从页面读取SMTP配置，随请求发送（不保存到本地）
+            const smtp = {
+                host: smtpHostInput.value.trim(),
+                port: smtpPortInput.value.trim(),
+                user: smtpUserInput.value.trim(),
+                pass: smtpPassInput.value.trim(),
+                from: fromInput.value.trim()
+            };
+            
+            const payload = { to, subject, html, smtp };
             const res = await fetch('/api/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
