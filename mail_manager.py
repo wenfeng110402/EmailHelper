@@ -204,20 +204,23 @@ def send_email():
 
     # 优先使用请求中的临时配置，否则从环境变量/文件加载
     smtp_data = data.get("smtp", {})
-    if smtp_data:
+    # 检查smtp_data是否有实际内容（至少有host或user）
+    has_temp_config = smtp_data and (smtp_data.get("host") or smtp_data.get("user"))
+    
+    if has_temp_config:
         # 使用临时配置（不保存到文件）
-        host = smtp_data.get("host", "")
-        username = smtp_data.get("user", "")
-        password = smtp_data.get("pass", "")
-        from_address = smtp_data.get("from", "")
+        host = smtp_data.get("host", "").strip()
+        username = smtp_data.get("user", "").strip()
+        password = smtp_data.get("pass", "").strip()
+        from_address = smtp_data.get("from", "").strip()
         port_str = str(smtp_data.get("port", "")).strip() or "587"
     else:
         # 使用已保存的配置
         cfg = load_smtp_config()
-        host = cfg.get("host", "")
-        username = cfg.get("user", "")
-        password = cfg.get("pass", "")
-        from_address = cfg.get("from", "")
+        host = cfg.get("host", "").strip()
+        username = cfg.get("user", "").strip()
+        password = cfg.get("pass", "").strip()
+        from_address = cfg.get("from", "").strip()
         port_str = str(cfg.get("port", "")).strip() or "587"
     port = int(port_str)
 
