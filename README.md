@@ -55,7 +55,7 @@ You can configure SMTP settings directly in the web interface.
 - Port: `587`
 - Use your Outlook email and password
 
-**Gmail:**
+**Gmail:**(unsupported)
 - Host: `smtp.gmail.com`
 - Port: `587`
 - Use your Gmail address and an [App Password](https://support.google.com/accounts/answer/185833)
